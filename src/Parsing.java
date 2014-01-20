@@ -102,10 +102,11 @@ public class Parsing {
 	/* 1. I think this function should be in MessagePasser.java 
 	 * 2. I am passing the message object into this function. Since you have written this, please call appropriate functions of the message class 
 	 * */
+
 	/** Checking whether or not a message matches a rule or not. 
-    @param type: 0 - check message with SendRules; 1 - check message with ReceiveRules
-    @return action name of the rule which this message matches with; or null if this message matches with no action.
-    */
+    	    @param sendOrReceive: 1 -> check message with ReceiveRules, 0 -> check message with SendRules
+    	    @return: The matched rule object is returned so that "Action name" can be used to decide what to do in the Send() function of MessagePasser
+        */
    public Rule RuleChecking(Message message, int sendOrReceive)
    {
            ArrayList<Rule> rl = null;
