@@ -128,10 +128,10 @@ public class Parsing {
                            continue;
                    else if( (rule.getId() > 0) && (rule.getId() != message.getId()) )
                            continue;
-                   
-                   if((rule.getNth() > 0) && (rule.getNth() != rule.getMatched()) )
+                   rule.setComparison();
+                   if((rule.getNth() > 0) && (rule.getNth() != rule.getComparison()) )
                            continue;
-                   else if( (rule.getEveryNth() > 0) && (rule.getMatched() % rule.getEveryNth()) != 0)
+                   else if( (rule.getEveryNth() > 0) && (rule.getComparison() % rule.getEveryNth()) != 0)
                            continue;
                    /* Rule matched, so return it */
                    return rule;
@@ -139,6 +139,5 @@ public class Parsing {
            /* If rule not matched, return null */
            return null; 
    }
-}
-	
+   
 }

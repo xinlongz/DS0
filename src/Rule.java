@@ -7,6 +7,7 @@ public class Rule
         private int Id = -1;
         private int EveryNth = -1;
         private int Nth = -1; 
+        private int compared = 0;
 
         public Rule(String action) {
                 this.action = action;
@@ -19,6 +20,7 @@ public class Rule
         public void setId(int Id){this.Id = Id;}
         public void setEveryNth(int EveryNth){this.EveryNth = EveryNth;}
         public void setNth(int Nth){this.Nth = Nth;}
+        public void setComparison(){compared++;}
         
         public String getAction(){return action;}
         public String getSource(){return source;}
@@ -27,5 +29,6 @@ public class Rule
         public int getId(){return Id;}
         public int getEveryNth(){return EveryNth;}
         public int getNth(){return Nth;}
+        public int getComparison(){return compared;}
      
 }
