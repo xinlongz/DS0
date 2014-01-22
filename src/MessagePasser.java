@@ -1,5 +1,6 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class MessagePasser {
@@ -8,6 +9,18 @@ public class MessagePasser {
 	private String localName;
 	private static int sequenceNum = -1;
 	
+	/* Resources for Receiver thread */
+	public ConcurrentLinkedQueue<Message> rcv_buffer = new ConcurrentLinkedQueue<Message>(); //Store received messages
+	public ConcurrentLinkedQueue<Message> delayed_buffer = new ConcurrentLinkedQueue<Message>(); // Store delayed messages
+	
+	public ConcurrentLinkedQueue<Message> getReceiveBufferQueue(){
+		return rcv_buffer;
+	}
+	
+    public ConcurrentLinkedQueue<Message> getDelayedBufferQueue(){
+    	return delayed_buffer;
+    }
+    
 	public MessagePasser(String configurationFilePath, String localName) {
 		File configuration = new File(configurationFilePath);
 		if(!configuration.exists() || configuration.isDirectory()) {
@@ -26,6 +39,12 @@ public class MessagePasser {
 		
 		
 		
+	}
+	
+	/* Here is the receive() function */
+	public Message receive() {
+		Message msg = rcv_buffer.poll(); // if ConcurrentLinkedQueue is empty, cq.poll return null; cq.poll() is atomic operation
+        return msg;
 	}
 	
 	/** Checking whether or not a message matches a rule or not. 
