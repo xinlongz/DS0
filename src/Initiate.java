@@ -10,7 +10,8 @@ public class Initiate {
 			System.exit(1);
 		}
 		/*
-		 * Initiate Parsing object NOTE: If we can club Parsing.java and
+		 * Initiate Parsing object 
+		 * NOTE: If we can club Parsing.java and
 		 * MessagePasser.java, that would be better I guess. This lets us create
 		 * just one instance of MessagePasser.java and pass on to sender and
 		 * receiver to use all resources
@@ -22,49 +23,44 @@ public class Initiate {
 		send.start();
 		Receiver recv = new Receiver(parse, args[1]); // 3. Receiver thread
 		recv.start();
-
+		
+		/* If we combine Parsing.java with MessagePasser.java, we can create and use only the MessagePasser and ignore Parsing.java */
+		MessagePasser mp = new MessagePasser(args[0], args[1]);
 		/*
-		 * Take input from the user: 1) For exiting- input exit or quit 2) Send
-		 * <dest> <kind> 3) Receive
+		 * Take input from the user: 
+		 * 1) For exiting- input exit or quit 
+		 * 2) Send <dest> <kind> 
+		 * 3) Receive
 		 */
-		String input = null;
 		BufferedReader br = null;
-
+		String inputArg,inputData = null;
+		
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in));
 			while (true) {
-				/* get user input */
-				input = br.readLine();
+				
+				/* Take input argument(send or receive or exit/quit) from user */
+				inputArg = br.readLine();
 
-				if (input.equals("quit") || input.equals("exit"))
-					System.exit(1);
-
-				if ((input = parseInput(input)) != null) {
-					if (input.equals("send")){
-						
+					if (inputArg.equals("send")){
+						String[] temp = input.split(" ");
+						inputData = br.readLine(); // Take the data from user
+						mp.send(new Message(temp[0], temp[1], inputData)); // This is where we call the send() function
 					}
-					if (input.equals("receive")) {
+					if (inputArg.equals("receive")) {
 						
-						Message mm = mp.receive(); // This is where we call the receive function
+						Message msg = mp.receive(); // This is where we call the receive() function
 						
-						if (mm == null)
+						if (msg == null)
 							System.out.println("No new message.");
 						else {
-							System.out.println("Received message ("
-									+ mm.getSrc() + "," + mm.getId()
-									+ ") from " + mm.getSrc() + " to "
-									+ mm.getDest() + ".|Kind: " + mm.getKind()
-									+ "|Content: " + (String) mm.getData());
-							System.out.println(mp.getReceiveQueue().size()
-									+ " more message(s)");
+							System.out.println("Message received: "+(String) msg.getPayload());
+							
 						}
-					} else {
-						String[] temp = input.split(" ");
-						System.out.print("Input message: ");
-						input = br.readLine();
-						mp.send(new Message(args[1], temp[1], temp[2], input));
 					}
-				}
+
+					if (inputArg.equals("quit") || inputArg.equals("exit"))
+						System.exit(1);
 				
 			}
 		} catch (IOException ioe) {
@@ -79,3 +75,4 @@ public class Initiate {
 		}
 	}
 }
+
