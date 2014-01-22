@@ -22,7 +22,7 @@ public class MessagePasser {
 		++sequenceNum;
 		message.setId(sequenceNum);
 		message.setSource(this.localName);
-		Rule rule = RuleChecking(message, 0);
+		String action = RuleChecking(message, 0);
 		
 		
 		
