@@ -16,8 +16,8 @@ public class Initiate {
 		 * just one instance of MessagePasser.java and pass on to sender and
 		 * receiver to use all resources
 		 */
-		Parsing parse = new Parsing(args[0], args[1]);
-		parse.parseConfigurationFile(args[1]); // 1. Parse the yaml file
+		//Parsing parse = new Parsing(args[0], args[1]);
+		//parse.parseConfigurationFile(args[1]); // 1. Parse the yaml file
 		
 		/* If we combine Parsing.java with MessagePasser.java, we can create and use only the MessagePasser and ignore Parsing.java */
 		MessagePasser mp = new MessagePasser(args[0], args[1]);
