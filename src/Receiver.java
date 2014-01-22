@@ -17,18 +17,21 @@ public class Receiver extends Thread {
 
 	private Parsing mp;
 	private String process;
+	private MessagePasser msgPass;
 
-	public ConcurrentLinkedQueue<Message> rcv_buffer = new ConcurrentLinkedQueue<Message>(); //Store received messages
-	public ConcurrentLinkedQueue<Message> delayed_buffer = new ConcurrentLinkedQueue<Message>(); // Store delayed messages
-
-	public Receiver(Parsing mp, String process) {
+	public Receiver(Parsing mp, String process, MessagePasser msgPass) {
 		this.mp = mp;
 		this.process = process;
+		this.msgPass = msgPass;
 	}
 
 	public void run() {
 
 		try {
+			
+			ConcurrentLinkedQueue<Message> rcv_buffer = msgPass.getReceiveBufferQueue();
+			ConcurrentLinkedQueue<Message> delayed_buffer = msgPass.getDelayedBufferQueue();
+					
 			/* Open the server socket on the specific port of the input process */
 			ServerSocket servSoc = new ServerSocket(mp.getAllProcesses()
 					.get(process).getPort());
@@ -87,3 +90,4 @@ public class Receiver extends Thread {
 	}
 
 }
+
