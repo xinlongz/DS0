@@ -18,14 +18,16 @@ public class Initiate {
 		 */
 		Parsing parse = new Parsing(args[0], args[1]);
 		parse.parseConfigurationFile(args[1]); // 1. Parse the yaml file
-		Sender send = new Sender(parse); // 2. Sender thread. You need to write
-											// this.
-		send.start();
-		Receiver recv = new Receiver(parse, args[1]); // 3. Receiver thread
-		recv.start();
 		
 		/* If we combine Parsing.java with MessagePasser.java, we can create and use only the MessagePasser and ignore Parsing.java */
 		MessagePasser mp = new MessagePasser(args[0], args[1]);
+		
+		Sender send = new Sender(parse); // 2. Sender thread. You are writing this. I dunno what parameters it takes
+		
+		send.start();
+		Receiver recv = new Receiver(parse, args[1], mp); // 3. Receiver thread
+		recv.start();
+		
 		/*
 		 * Take input from the user: 
 		 * 1) For exiting- input exit or quit 
