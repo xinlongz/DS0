@@ -1,8 +1,10 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -16,10 +18,12 @@ import org.yaml.snakeyaml.Yaml;
 public class MessagePasser {
 	private String configurationFilePath;
 	private String localName;
-	private int sequenceNum = -1;
+	private int sequenceNum;
 	private int port;
+	private ServerSocket serverSocket;
 	//last modification time of configuration
 	private long modifiedTime;	
+	
 	
 	
 	private static HashMap<String, User> processes = new HashMap<String, User>();
@@ -50,8 +54,99 @@ public class MessagePasser {
 		}
 		parseConfigurationFile(configurationFilePath);
 		this.localName = localName;
+		sequenceNum = -1;
 		port = processes.get(this.localName).getPort();
+		try {
+			serverSocket = new ServerSocket(port);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ServerThread server = new ServerThread();
+		
 	}
+	//
+	class ServerThread extends Thread {
+		public void run() {
+			if(serverSocket == null)
+				return;
+			while(true) {
+				Socket socket = null;
+				try {
+					socket = serverSocket.accept();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Receiver1 receiver = new Receiver1(socket);
+				receiver.start();
+			}
+			
+			
+		}
+	}
+	
+	class Receiver1 extends Thread {
+		private Socket socket;
+		public Receiver1(Socket socket) {
+			this.socket = socket;
+		}
+		public void run() {
+			while(true) {
+				ObjectInputStream objInpStr = null;
+				try {
+					objInpStr = new ObjectInputStream(
+							socket.getInputStream());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Message receiveMesg = null;
+				try {
+					receiveMesg = (Message) objInpStr.readObject();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(receiveMesg == null)
+					continue;
+				String action = RuleChecking(receiveMesg, 1);
+				if (action != null) {
+					
+					// DUPLICATE
+					if (action.equals("duplicate")) {
+						rcv_buffer.add(receiveMesg);
+						
+						/* Not sure if the following is correct or not: adding the Message from delayed_buffer into rcv_buffer */
+						synchronized (delayed_buffer) {
+							while (!delayed_buffer.isEmpty()) {
+								rcv_buffer.add(delayed_buffer.poll());
+							}
+						}
+						/* TODO
+						 * Copy the message and add to the rcv_buffer here 
+						 * */
+						
+					} else if (action.equals("delay")) { //DELAY
+						delayed_buffer.add(receiveMesg);
+					} else if (action.equals("drop")) //DROP
+						;
+				} else {
+					// Default: "action" doesnt contain anything
+					rcv_buffer.add(receiveMesg);
+					synchronized (delayed_buffer) {
+						while (!delayed_buffer.isEmpty()) {
+							rcv_buffer.add(delayed_buffer.poll());
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	
 	
 	public void send(Message message) {
@@ -293,3 +388,5 @@ public class MessagePasser {
 	
 	
 }
+
+	
