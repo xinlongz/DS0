@@ -22,10 +22,9 @@ public class Initiate {
 		/* If we combine Parsing.java with MessagePasser.java, we can create and use only the MessagePasser and ignore Parsing.java */
 		MessagePasser mp = new MessagePasser(args[0], args[1]);
 		
-		Sender send = new Sender(parse); // 2. Sender thread. You are writing this. I dunno what parameters it takes
-		
-		send.start();
-		Receiver recv = new Receiver(parse, args[1], mp); // 3. Receiver thread
+		//Sender send = new Sender(parse); // 2. Sender thread. You are writing this. I dunno what parameters it takes
+		//send.start();
+		Receiver recv = new Receiver(args[1], mp); // 3. Receiver thread
 		recv.start();
 		
 		/*
@@ -35,17 +34,20 @@ public class Initiate {
 		 * 3) Receive
 		 */
 		BufferedReader br = null;
-		String inputArg,inputData = null;
+		String inputArg,params,inputData = null;
 		
 		try {
 			br = new BufferedReader(new InputStreamReader(System.in));
 			while (true) {
 				
 				/* Take input argument(send or receive or exit/quit) from user */
+				System.out.println("Enter the option: send/receive/exit");
 				inputArg = br.readLine();
 
 					if (inputArg.equals("send")){
-						String[] temp = input.split(" ");
+						System.out.println("Enter the <Destination> <kind>");
+						params = br.readLine();
+						String[] temp = params.split(" ");
 						inputData = br.readLine(); // Take the data from user
 						mp.send(new Message(temp[0], temp[1], inputData)); // This is where we call the send() function
 					}
