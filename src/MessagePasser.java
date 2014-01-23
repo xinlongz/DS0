@@ -51,11 +51,11 @@ public class MessagePasser {
     
 	public MessagePasser(String configurationFilePath, String localName) {
 		this.configurationFilePath = configurationFilePath;
-		File configuration = new File(configurationFilePath);
+		File configuration = new File(this.configurationFilePath);
 		if(!configuration.exists() || configuration.isDirectory()) {
 			System.err.println("Path for configuration file is not correct!");
 		}
-		parseConfigurationFile(configurationFilePath);
+		parseConfigurationFile(this.configurationFilePath);
 		this.localName = localName;
 		sequenceNum = -1;
 		port = processes.get(this.localName).getPort();
@@ -65,20 +65,27 @@ public class MessagePasser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ServerThread server = new ServerThread();
 		
 		/* Initialize the lock */
 		lock = new ReentrantLock();
+		
+		ServerThread server = new ServerThread();
+		server.start();
+		
 	}
 	//
 	class ServerThread extends Thread {
 		public void run() {
-			if(serverSocket == null)
+			if(serverSocket == null) {
+				
 				return;
+			}
+				
 			while(true) {
 				Socket socket = null;
 				try {
 					socket = serverSocket.accept();
+					System.out.println("accept a connection");
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -93,6 +100,7 @@ public class MessagePasser {
 	
 	class Receiver1 extends Thread {
 		private Socket socket;
+		private boolean add;
 		public Receiver1(Socket socket) {
 			this.socket = socket;
 		}
@@ -116,8 +124,11 @@ public class MessagePasser {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
 				if(receiveMesg == null)
 					continue;
+				
+				updateRules(configurationFilePath);
 				String action = RuleChecking(receiveMesg, 1);
 				if (action != null) {
 					
@@ -127,6 +138,12 @@ public class MessagePasser {
 						/** Lock before adding to buffer */
 						lock.lock();
 						rcv_buffer.add(receiveMesg);
+						try {
+							rcv_buffer.add(receiveMesg.clone());
+						} catch (CloneNotSupportedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						lock.unlock();
 						
 						/* Not sure if the following is correct or not: adding the Message from delayed_buffer into rcv_buffer */
@@ -150,7 +167,6 @@ public class MessagePasser {
 					lock.lock();
 					rcv_buffer.add(receiveMesg);
 					lock.unlock();
-					
 					synchronized (delayed_buffer) {
 						while (!delayed_buffer.isEmpty()) {
 							rcv_buffer.add(delayed_buffer.poll());
@@ -166,7 +182,7 @@ public class MessagePasser {
 	public void send(Message message) {
 		if(message == null)
 			return;
-		updateRules(configurationFilePath);
+		//updateRules(configurationFilePath);
 		if(mapSocket.get(message.getDestination()) == null) {
 			User dest = processes.get(message.getDestination());
 			Socket socket = null;
@@ -212,6 +228,10 @@ public class MessagePasser {
 				dup.setDupFlag(true);
 				sendOneMesg(message, mapSocket.get(message.getDestination()));
 				sendOneMesg(dup, mapSocket.get(dup.getDestination()));
+				while(delayed_send_buffer.size() != 0) {
+					Message delayedMsg = delayed_send_buffer.poll();
+					sendOneMesg(delayedMsg, mapSocket.get(delayedMsg.getDestination()));
+				}
 			}
 		}
 		
@@ -246,7 +266,7 @@ public class MessagePasser {
 	
 	/* Here is the receive() function */
 	public Message receive() {
-		
+		//System.out.println(rcv_buffer.peek());
 		lock.lock();
 		Message msg = rcv_buffer.poll(); // if ConcurrentLinkedQueue is empty, cq.poll return null; cq.poll() is atomic operation
 		lock.unlock();
@@ -272,25 +292,26 @@ public class MessagePasser {
 		FileInputStream f = null;
         try
         {
-                f = new FileInputStream("conf/config.yaml");
+                f = new FileInputStream(configurationFilePath);
                 Yaml yaml = new Yaml();
                 Map<String, Object> data = (Map<String, Object>)yaml.load(f);
                 
                 ArrayList<HashMap<String, Object> > conf = (ArrayList<HashMap<String, Object> >)data.get("Configuration");
-                System.out.println("--Names--");
+                //System.out.println("--Names--");
                 for(HashMap<String, Object> usr : conf)
                 {
                         User u = new User((String)usr.get("Name"),(String)usr.get("IP"),(Integer)usr.get("Port") );
-                        System.out.println(u.getName());
+                        //System.out.println(u.getName());
+                        //System.out.println(u.getIp());
                         processes.put((String)usr.get("Name"), u);
                 }
                 
                 
                 ArrayList<HashMap<String, Object> > parsedSendRules = (ArrayList<HashMap<String, Object> >)data.get("SendRules");
-                System.out.println("--SendRules--");
+                //System.out.println("--SendRules--");
                 for(HashMap<String, Object> rule : parsedSendRules)
                 {
-                		System.out.println((String)rule.get("Action"));
+                		//System.out.println((String)rule.get("Action"));
                         Rule rl = new Rule((String)rule.get("Action"));
                         for(String key: rule.keySet())
                         {
@@ -312,10 +333,10 @@ public class MessagePasser {
 
                 
                 ArrayList<HashMap<String, Object> > parsedReceiveRules = (ArrayList<HashMap<String, Object> >)data.get("ReceiveRules");
-                System.out.println("--ReceiveRules--");
+                //System.out.println("--ReceiveRules--");
                 for(HashMap<String, Object> rule : parsedReceiveRules)
                 {
-                		System.out.println((String)rule.get("Action"));
+                		//System.out.println((String)rule.get("Action"));
                         Rule rl = new Rule((String)rule.get("Action"));
                         for(String key: rule.keySet())
                         {
@@ -378,10 +399,10 @@ public class MessagePasser {
                            continue;
                    else if((rule.getKind() != null) && !(rule.getKind().equals(message.getKind())))
                            continue;
-                   /*
+                   
                    else if( (rule.getId() > 0) && (rule.getId() != message.getId()) )
                            continue;
-                   */
+                   
                    rule.setComparison();
                    if((rule.getNth() > 0) && (rule.getNth() != rule.getComparison()) )
                            continue;

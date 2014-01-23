@@ -1,4 +1,4 @@
-import java.io.*;
+/*import java.io.*;
 import java.net.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * 
  * Then, call r.start();  to trigger the Receiver thread
  * */
-public class Receiver extends Thread {
+/*public class Receiver extends Thread {
 
 	private Parsing mp;
 	private String process;
@@ -33,23 +33,23 @@ public class Receiver extends Thread {
 			ConcurrentLinkedQueue<Message> delayed_buffer = msgPass.getDelayedBufferQueue();
 					
 			/* Open the server socket on the specific port of the input process */
-			ServerSocket servSoc = new ServerSocket(mp.getAllProcesses()
+/*			ServerSocket servSoc = new ServerSocket(mp.getAllProcesses()
 					.get(process).getPort());
 			
 			while (true) {
 				Socket soc = servSoc.accept();
 				/* Read the Messages sent by sender */
-				ObjectInputStream objInpStr = new ObjectInputStream(
-						soc.getInputStream());
+//				ObjectInputStream objInpStr = new ObjectInputStream(
+	//					soc.getInputStream());
 				
 				/* Typecast the Message read */
-				Message message = (Message) objInpStr.readObject();
+/*				Message message = (Message) objInpStr.readObject();
 
 				/*
 				 * Check the message according to ReceiveRules. Here "1" implies
 				 * Receiver
 				 */
-				String action = mp.RuleChecking(message, 1);
+/*				String action = mp.RuleChecking(message, 1);
 				if (action != null) {
 					
 					// DUPLICATE
@@ -57,7 +57,7 @@ public class Receiver extends Thread {
 						rcv_buffer.add(message);
 						
 						/* Not sure if the following is correct or not: adding the Message from delayed_buffer into rcv_buffer */
-						synchronized (delayed_buffer) {
+/*						synchronized (delayed_buffer) {
 							while (!delayed_buffer.isEmpty()) {
 								rcv_buffer.add(delayed_buffer.poll());
 							}
@@ -66,7 +66,7 @@ public class Receiver extends Thread {
 						 * Copy the message and add to the rcv_buffer here 
 						 * */
 						
-					} else if (action.equals("delay")) { //DELAY
+/*					} else if (action.equals("delay")) { //DELAY
 						delayed_buffer.add(message);
 					} else if (action.equals("drop")) //DROP
 						;
@@ -90,4 +90,4 @@ public class Receiver extends Thread {
 	}
 
 }
-
+*/

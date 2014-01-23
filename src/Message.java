@@ -19,7 +19,10 @@ public class Message implements Serializable, Cloneable {
 	}
 	//duplicate
 	public Message clone() throws CloneNotSupportedException {
-		return (Message)this.clone();	
+		Message newMesg = new Message(this.dest, this.kind, this.getPayload());
+		newMesg.setSource(this.getSource());
+		newMesg.setId(this.getId());
+		return newMesg;	
 	}
 	
 	public void setSource(String source) {
@@ -65,7 +68,7 @@ public class Message implements Serializable, Cloneable {
 	}
 	
 	public String toString() {
-		return sequenceNumber + " " + source + " " + dest + " " + kind + " " + dupFlag;
+		return sequenceNumber + " " + source + " " + dest + " " + kind + " " + dupFlag + " " + payload;
 	}
 	
 }
