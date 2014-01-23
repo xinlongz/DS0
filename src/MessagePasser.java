@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.*;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -22,8 +23,10 @@ public class MessagePasser {
 	private int port;
 	private ServerSocket serverSocket;
 	//last modification time of configuration
-	private long modifiedTime;	
+	private long modifiedTime;
 	
+	/* Lock used when we add/remove elements to/from buffer */
+	private Lock lock;
 	
 	
 	private static HashMap<String, User> processes = new HashMap<String, User>();
@@ -64,6 +67,8 @@ public class MessagePasser {
 		}
 		ServerThread server = new ServerThread();
 		
+		/* Initialize the lock */
+		lock = new ReentrantLock();
 	}
 	//
 	class ServerThread extends Thread {
@@ -118,7 +123,11 @@ public class MessagePasser {
 					
 					// DUPLICATE
 					if (action.equals("duplicate")) {
+						
+						/** Lock before adding to buffer */
+						lock.lock();
 						rcv_buffer.add(receiveMesg);
+						lock.unlock();
 						
 						/* Not sure if the following is correct or not: adding the Message from delayed_buffer into rcv_buffer */
 						synchronized (delayed_buffer) {
@@ -136,7 +145,12 @@ public class MessagePasser {
 						;
 				} else {
 					// Default: "action" doesnt contain anything
+					
+					/** Lock before adding to buffer */
+					lock.lock();
 					rcv_buffer.add(receiveMesg);
+					lock.unlock();
+					
 					synchronized (delayed_buffer) {
 						while (!delayed_buffer.isEmpty()) {
 							rcv_buffer.add(delayed_buffer.poll());
@@ -232,8 +246,12 @@ public class MessagePasser {
 	
 	/* Here is the receive() function */
 	public Message receive() {
+		
+		lock.lock();
 		Message msg = rcv_buffer.poll(); // if ConcurrentLinkedQueue is empty, cq.poll return null; cq.poll() is atomic operation
-        return msg;
+		lock.unlock();
+        
+		return msg;
 	}
 	
 	public void updateRules(String configurationFilePath) {
@@ -389,4 +407,3 @@ public class MessagePasser {
 	
 }
 
-	
