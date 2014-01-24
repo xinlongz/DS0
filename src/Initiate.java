@@ -22,6 +22,12 @@ public class Initiate {
 		/* If we combine Parsing.java with MessagePasser.java, we can create and use only the MessagePasser and ignore Parsing.java */
 		MessagePasser mp = new MessagePasser(args[0], args[1]);
 		System.out.println("Hi, this is " + args[1]);
+		
+		/** Handling config file change */
+		ConfigFileHandler cfgHandler = new ConfigFileHandler(args[0], args[1]);
+		cfgHandler.start();
+		
+		
 		//Sender send = new Sender(parse); // 2. Sender thread. You are writing this. I dunno what parameters it takes
 		//send.start();
 		//Receiver recv = new Receiver(args[1], mp); // 3. Receiver thread
