@@ -100,7 +100,6 @@ public class MessagePasser {
 	
 	class Receiver1 extends Thread {
 		private Socket socket;
-		private boolean add;
 		public Receiver1(Socket socket) {
 			this.socket = socket;
 		}
